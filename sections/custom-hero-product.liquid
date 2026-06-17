@@ -1,0 +1,461 @@
+{% schema %}
+{
+  "name": "custom hero product",
+  "max_blocks": 7,
+  "tag": "section",
+  "class": "militaris-hero-section",
+  "settings": [
+    { "type": "product", "id": "hero_product", "label": "Hero Product" },
+    { "type": "text", "id": "tagline", "label": "Top Tagline", "default": "ENERGY | IMMUNITY | STAMINA | FOCUS" },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Daily vitality, natural endurance, and cellular strength — all in one spoonful."
+    },
+    {
+      "type": "textarea",
+      "id": "flavor_text",
+      "label": "Flavor Description",
+      "default": "Smooth earthy flavor with a hint of umami."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Benefit",
+      "settings": [{ "type": "text", "id": "text", "label": "Benefit text", "default": "New benefit" }]
+    },
+    {
+      "type": "feature_icon",
+      "name": "Feature Icon",
+      "settings": [
+        { "type": "image_picker", "id": "icon", "label": "Icon image" },
+        { "type": "text", "id": "text", "label": "Icon label", "default": "Description" }
+      ]
+    }
+  ],
+  "max_blocks": 10,
+  "presets": [
+    {
+      "name": "custom hero product",
+      "blocks": [
+        { "type": "benefit" },
+        { "type": "benefit" },
+        { "type": "benefit" },
+        { "type": "feature_icon" },
+        { "type": "feature_icon" },
+        { "type": "feature_icon" },
+        { "type": "feature_icon" },
+        { "type": "feature_icon" }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{% assign product = all_products[section.settings.hero_product] %}
+
+<section class="vchr">
+  <div class="vchr-wrap">
+
+    <!-- Copy column -->
+    <div class="vchr-copy">
+      {%- if section.settings.tagline != blank -%}
+        <span class="vchr-eyebrow vc-fade-up">{{ section.settings.tagline }}</span>
+      {%- endif -%}
+
+      <h1 class="vchr-title vc-fade-up">{{ product.title }}</h1>
+
+      {%- if section.settings.subheading != blank -%}
+        <p class="vchr-sub vc-fade-up">{{ section.settings.subheading }}</p>
+      {%- endif -%}
+
+      {%- assign benefit_blocks = section.blocks | where: 'type', 'benefit' -%}
+      {%- if benefit_blocks.size > 0 -%}
+        <ul class="vchr-checklist vc-fade-up">
+          {%- for block in benefit_blocks -%}
+            <li class="vchr-check" {{ block.shopify_attributes }}>
+              <span class="vchr-check__icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              <span>{{ block.settings.text }}</span>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      <!-- Price row -->
+      <div class="vchr-price-row vc-fade-up">
+        <span class="vchr-price">{{ product.price | money }}</span>
+        {%- if product.compare_at_price > product.price -%}
+          <span class="vchr-was">{{ product.compare_at_price | money }}</span>
+          <span class="vchr-save">Save {{ product.compare_at_price | minus: product.price | money }}</span>
+        {%- endif -%}
+      </div>
+
+      {% form 'product', product %}
+        {%- if product.variants.size > 1 -%}
+          <div class="vchr-variants vc-fade-up">
+            {%- for variant in product.variants -%}
+              <label class="vchr-var">
+                <input
+                  type="radio"
+                  name="id"
+                  value="{{ variant.id }}"
+                  data-price="{{ variant.price | money }}"
+                  {%- if forloop.first %} checked{%- endif %}
+                >
+                <span class="vchr-var__pill">{{ variant.title }}</span>
+              </label>
+            {%- endfor -%}
+          </div>
+        {%- else -%}
+          {%- assign default_variant = product.selected_or_first_available_variant -%}
+          <input type="hidden" name="id" value="{{ default_variant.id }}">
+        {%- endif -%}
+
+        <div class="vchr-actions vc-fade-up">
+          <button type="submit" class="vchr-atc">
+            Buy Now &nbsp;·&nbsp; <span class="vchr-btn-price">{{ product.price | money }}</span>
+          </button>
+        </div>
+      {% endform %}
+
+      <p class="vchr-trust vc-fade-up">ICAR Backed · 10% Cordycepin · Lab Tested</p>
+
+      <!-- Feature icons -->
+      {%- assign icon_blocks = section.blocks | where: 'type', 'feature_icon' -%}
+      {%- if icon_blocks.size > 0 -%}
+        <div class="vchr-icons">
+          {%- for block in icon_blocks -%}
+            <div class="vchr-icon" {{ block.shopify_attributes }}>
+              {%- if block.settings.icon != blank -%}
+                <img
+                  src="{{ block.settings.icon | image_url: width: 80 }}"
+                  alt="{{ block.settings.text | escape }}"
+                  class="vchr-icon__img"
+                  loading="lazy"
+                  width="40" height="40"
+                >
+              {%- endif -%}
+              <span class="vchr-icon__lbl">{{ block.settings.text }}</span>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <!-- Media column -->
+    <div class="vchr-media">
+      {%- if product.featured_image -%}
+        <img
+          src="{{ product.featured_image | image_url: width: 900 }}"
+          srcset="{{ product.featured_image | image_url: width: 600 }} 600w,
+                  {{ product.featured_image | image_url: width: 900 }} 900w"
+          sizes="(min-width: 990px) 45vw, 100vw"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}"
+          class="vchr-img"
+          loading="eager"
+          fetchpriority="high"
+          width="{{ product.featured_image.width }}"
+          height="{{ product.featured_image.height }}"
+        >
+      {%- endif -%}
+
+      <!-- Floating social proof badge -->
+      <div class="vchr-social-proof" aria-label="Customer ratings">
+        <div class="vchr-sp__stars" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <div class="vchr-sp__copy">
+          <strong class="vchr-sp__score">4.9</strong>
+          <span class="vchr-sp__label">2,400+ Reviews</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  (function () {
+    /* Variant price update */
+    var priceEls = document.querySelectorAll('.vchr-price, .vchr-btn-price');
+    document.querySelectorAll('.vchr-variants input[type="radio"]').forEach(function (input) {
+      input.addEventListener('change', function () {
+        priceEls.forEach(function (el) { el.textContent = input.dataset.price; });
+      });
+    });
+
+    /* Global IntersectionObserver for .vc-fade-up */
+    if (!window.__vcObserverInit) {
+      window.__vcObserverInit = true;
+      document.addEventListener('DOMContentLoaded', function () {
+        var els = document.querySelectorAll('.vc-fade-up');
+        if (!('IntersectionObserver' in window)) {
+          els.forEach(function (el) { el.classList.add('is-visible'); });
+          return;
+        }
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        els.forEach(function (el) { io.observe(el); });
+      });
+    }
+  })();
+</script>
+
+<style>
+  /* ── VCHR Hero ── */
+  .vchr {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    background: radial-gradient(ellipse at 70% 50%, #F0E8D8 0%, #FAFAF7 60%) !important;
+    padding: 60px 20px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .vchr-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  @media (min-width: 990px) {
+    .vchr-wrap { grid-template-columns: 55fr 45fr; gap: 80px; }
+  }
+
+  /* Media */
+  .vchr-media { order: 1; position: relative; }
+  @media (min-width: 990px) { .vchr-media { order: 2; } }
+
+  .vchr-img {
+    width: 100%;
+    display: block;
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.10);
+    object-fit: cover;
+  }
+
+  /* Copy */
+  .vchr-copy { order: 2; }
+  @media (min-width: 990px) { .vchr-copy { order: 1; } }
+
+  .vchr-eyebrow {
+    display: block;
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-variant: small-caps;
+    color: #C4571A;
+    margin-bottom: 14px;
+  }
+
+  .vchr-title {
+    font-family: 'Spectral', Georgia, serif;
+    font-size: clamp(52px, 6vw, 80px);
+    font-weight: 700;
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    color: #1A1A1A;
+    margin: 0 0 18px;
+  }
+
+  @media (max-width: 767px) {
+    .vchr-title { font-size: clamp(38px, 8vw, 52px); }
+  }
+
+  .vchr-sub {
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    color: #5C5C5C;
+    margin-bottom: 28px;
+  }
+
+  /* Checklist */
+  .vchr-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vchr-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #3D3830;
+  }
+
+  .vchr-check__icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(196,87,26,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #C4571A;
+    margin-top: 1px;
+  }
+
+  /* Price row */
+  .vchr-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .vchr-price {
+    font-family: 'Spectral', Georgia, serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: #1A1A1A;
+  }
+
+  .vchr-was {
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #A09890;
+    text-decoration: line-through;
+  }
+
+  .vchr-save {
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    color: #2D7D4E;
+    background: #E8F5EE;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  /* Variant pills */
+  .vchr-variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .vchr-var { cursor: pointer; }
+  .vchr-var input { display: none; }
+
+  .vchr-var__pill {
+    display: inline-block;
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 50px;
+    border: 1.5px solid #D4C4A8;
+    background: #fff;
+    color: #1A1A1A;
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .vchr-var input:checked + .vchr-var__pill {
+    border-color: #C4571A;
+    background: #FFF4EE;
+    color: #C4571A;
+  }
+
+  /* CTA */
+  .vchr-actions { margin-bottom: 12px; }
+
+  .vchr-atc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: #C4571A;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 16px 40px;
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .vchr-atc:hover { background: #A8431A; transform: translateY(-2px); }
+
+  /* Trust strip */
+  .vchr-trust {
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 13px;
+    color: #8A8278;
+    text-align: center;
+    margin: 0 0 28px;
+  }
+
+  /* Feature icons */
+  .vchr-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid #D4C4A8;
+  }
+
+  .vchr-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    flex: 1 1 18%;
+    min-width: 60px;
+    max-width: 88px;
+  }
+
+  .vchr-icon__img { width: 40px; height: 40px; object-fit: contain; }
+
+  .vchr-icon__lbl {
+    font-family: 'Mulish', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #3D3830;
+    line-height: 1.3;
+  }
+
+  /* Mobile alignment */
+  @media (max-width: 767px) {
+    .vchr-eyebrow,
+    .vchr-title,
+    .vchr-sub,
+    .vchr-trust { text-align: center; }
+    .vchr-price-row { justify-content: center; }
+    .vchr-variants { justify-content: center; }
+    .vchr-icons { justify-content: center; }
+    .vchr-checklist { text-align: left; }
+  }
+</style>

@@ -1,0 +1,136 @@
+<section class="vc-sec vc-sec--paper vc-sec__pad" id="vc-tea-{{ section.id }}">
+  <div class="vc-wrap">
+    <div class="vc-sec-head--center vc-fade-up">
+      {%- if section.settings.eyebrow != blank -%}
+        <span class="vc-eyebrow">{{ section.settings.eyebrow }}</span>
+      {%- endif -%}
+      <h2 class="vc-h2">{{ section.settings.heading }}</h2>
+      {%- if section.settings.subtext != blank -%}
+        <p class="vc-sec-sub">{{ section.settings.subtext }}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="vc-teas">
+      {%- for block in section.blocks -%}
+        <article class="vc-tea vc-fade-up" {{ block.shopify_attributes }}>
+          <div class="vc-tea__img-wrap">
+            {%- if block.settings.image != blank -%}
+              <img
+                src="{{ block.settings.image | image_url: width: 600 }}"
+                alt="{{ block.settings.name | escape }}"
+                class="vc-tea__img"
+                loading="lazy"
+                width="600" height="450"
+              >
+            {%- else -%}
+              <div style="background-color:var(--vc-warm-panel);width:100%;height:100%;"></div>
+            {%- endif -%}
+          </div>
+          <div class="vc-tea__body">
+            <h3 class="vc-tea__name">{{ block.settings.name }}</h3>
+            {%- if block.settings.description != blank -%}
+              <p class="vc-tea__desc">{{ block.settings.description }}</p>
+            {%- endif -%}
+            {%- if block.settings.price != blank -%}
+              <div class="vc-price" style="margin-top:auto;padding-top:14px;">
+                <span class="vc-price__now">{{ block.settings.price }}</span>
+              </div>
+            {%- endif -%}
+            {%- if block.settings.cta_label != blank -%}
+              <a href="{{ block.settings.cta_url }}" class="vc-tea__cta">
+                <span>{{ block.settings.cta_label }}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            {%- endif -%}
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+
+{% schema %}
+{
+  "name": "VC Tea Strip",
+  "tag": "section",
+  "class": "vc-sec",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow label",
+      "default": "Functional Teas"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Find Your Ritual"
+    },
+    {
+      "type": "textarea",
+      "id": "subtext",
+      "label": "Subtext",
+      "default": "Cordyceps-infused teas for every moment of your day."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tea",
+      "name": "Tea card",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Tea name",
+          "default": "Morning Clarity"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Energising green tea with Cordyceps and ginger for a clear-headed start."
+        },
+        {
+          "type": "text",
+          "id": "price",
+          "label": "Price (display only)",
+          "default": "₹650"
+        },
+        {
+          "type": "text",
+          "id": "cta_label",
+          "label": "Button label",
+          "default": "Shop Now"
+        },
+        {
+          "type": "url",
+          "id": "cta_url",
+          "label": "Button link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "VC Tea Strip",
+      "settings": {
+        "eyebrow": "Functional Teas",
+        "heading": "Find Your Ritual",
+        "subtext": "Cordyceps-infused teas for every moment of your day."
+      },
+      "blocks": [
+        { "type": "tea", "settings": { "name": "Morning Clarity",  "description": "Energising green tea with Cordyceps and ginger for a clear-headed start.", "price": "₹650", "cta_label": "Shop Now" } },
+        { "type": "tea", "settings": { "name": "Midday Focus",     "description": "Light oolong blend with Cordyceps and ashwagandha to keep you sharp.", "price": "₹650", "cta_label": "Shop Now" } },
+        { "type": "tea", "settings": { "name": "Evening Recovery", "description": "Chamomile and Cordyceps blend to ease stress and prepare your body for rest.", "price": "₹650", "cta_label": "Shop Now" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
