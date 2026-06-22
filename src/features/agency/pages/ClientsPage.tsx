@@ -3,10 +3,27 @@
 import { useState } from 'react';
 import { useNavigate } from '../lib/navigation';
 import { Search, ExternalLink, Mail, TrendingUp, BarChart2, ImageIcon, Briefcase } from 'lucide-react';
-import { clients, assets, campaigns } from '../data/mockData';
+import {
+  clients as mockClients,
+  assets as mockAssets,
+  campaigns as mockCampaigns,
+  type Client,
+  type Asset,
+  type Campaign,
+} from '../data/mockData';
 import { cn } from '../lib/utils';
 
-export default function ClientsPage() {
+interface ClientsPageProps {
+  clients?: Client[];
+  assets?: Asset[];
+  campaigns?: Campaign[];
+}
+
+export default function ClientsPage(props: ClientsPageProps = {}) {
+  const clients = props.clients?.length ? props.clients : mockClients;
+  const assets = props.assets ?? mockAssets;
+  const campaigns = props.campaigns ?? mockCampaigns;
+
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState<string | null>(null);

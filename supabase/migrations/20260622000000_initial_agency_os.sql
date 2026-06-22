@@ -196,6 +196,21 @@ create table public.activity_events (
   created_at timestamptz not null default now()
 );
 
+create table public.brand_kits (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references public.clients(id) on delete cascade,
+  name text not null,
+  primary_colors jsonb not null default '[]'::jsonb, -- [{ name, hex, usage }]
+  fonts jsonb not null default '[]'::jsonb,           -- [{ name, weights, usage, sample }]
+  logos jsonb not null default '[]'::jsonb,           -- [{ name, variant, bg }]
+  voice jsonb not null default '[]'::jsonb,           -- [{ principle, description }]
+  guidelines jsonb not null default '[]'::jsonb,      -- string[]
+  guidelines_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (client_id) -- one brand kit per client
+);
+
 create index clients_name_idx on public.clients(name);
 create index campaigns_client_id_idx on public.campaigns(client_id);
 create index assets_campaign_id_idx on public.assets(campaign_id);
@@ -219,6 +234,7 @@ alter table public.approvals enable row level security;
 alter table public.ai_consolidations enable row level security;
 alter table public.ai_prompt_generations enable row level security;
 alter table public.activity_events enable row level security;
+alter table public.brand_kits enable row level security;
 
 create policy "Members can read profiles"
 on public.profiles for select
@@ -293,6 +309,12 @@ with check (true);
 
 create policy "Members can manage activity"
 on public.activity_events for all
+to authenticated
+using (true)
+with check (true);
+
+create policy "Members can manage brand kits"
+on public.brand_kits for all
 to authenticated
 using (true)
 with check (true);

@@ -75,7 +75,7 @@ function FounderDashboard() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold mb-1" style={{ fontFamily: 'var(--font-display)' }}>Good morning, Maya</h1>
-        <p className="text-sm text-muted-foreground">Here's what's happening across your agency today.</p>
+        <p className="text-sm text-muted-foreground">Here&apos;s what&apos;s happening across your agency today.</p>
       </div>
 
       {/* Stat Cards */}

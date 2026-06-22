@@ -1,11 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { clients } from '../data/mockData';
+import { clients as mockClients, type Client } from '../data/mockData';
 import { Upload, Plus, Type, Image, FileText, Volume2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-const brandKit = {
+export interface BrandKitView {
+  colors: { name: string; hex: string; usage: string }[];
+  fonts: { name: string; weights: string[]; usage: string; sample: string }[];
+  logos: { name: string; variant: string; bg: string }[];
+  voice: { principle: string; description: string }[];
+  guidelines: string[];
+}
+
+interface BrandKitPageProps {
+  clients?: Client[];
+  brandKits?: Record<string, BrandKitView>;
+}
+
+const defaultBrandKit: BrandKitView = {
   colors: [
     { name: 'Primary Purple', hex: '#6B21E8', usage: 'CTA, links, primary actions' },
     { name: 'Deep Indigo', hex: '#1E1B4B', usage: 'Backgrounds, dark surfaces' },
@@ -43,11 +56,13 @@ const brandKit = {
 const tabs = ['Colors', 'Typography', 'Logos', 'Voice', 'Guidelines', 'Assets'] as const;
 type Tab = typeof tabs[number];
 
-export default function BrandKitPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('Colors');
-  const [selectedClient, setSelectedClient] = useState('c1');
+export default function BrandKitPage(props: BrandKitPageProps = {}) {
+  const clients = props.clients?.length ? props.clients : mockClients;
 
-  const client = clients.find(c => c.id === selectedClient)!;
+  const [activeTab, setActiveTab] = useState<Tab>('Colors');
+  const [selectedClient, setSelectedClient] = useState(clients[0]?.id ?? 'c1');
+
+  const brandKit = props.brandKits?.[selectedClient] ?? defaultBrandKit;
 
   return (
     <div className="p-6 space-y-5">
