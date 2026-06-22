@@ -53,4 +53,20 @@ The integrated app code lives in `src/features/agency` and is mounted through na
 
 ## Current State
 
-The UI is integrated from the handoff and still reads mock data from `src/features/agency/data/mockData.ts`. Supabase and AI routes are wired as backend connection seams, ready for the next pass where mock reads/writes are replaced with database-backed operations.
+Data flows from Supabase through a typed data-access layer (`src/lib/db/agency.ts`,
+row types in `src/types/database.ts`) into the pages. The list/overview routes —
+dashboard (`/`), clients, campaigns, assets, approvals, activity, analytics and
+brand-kits — are server components that fetch real data and pass it to the
+feature pages. Each page keeps its mock data as a fallback, so the app still
+renders fully when Supabase is unconfigured or the tables are empty.
+
+The AI routes (`/api/ai/consolidate-feedback`, `/api/ai/generate-prompt`)
+persist their output to `ai_consolidations` / `ai_prompt_generations` when the
+relevant ids (`reviewCycleId`, `assetVersionId`/`consolidationId`) are supplied;
+persistence is best-effort and never blocks the AI response.
+
+Run `supabase/seed.sql` after the migration to populate sample data.
+
+Still on mock: the asset-detail routes (`/assets/[id]/*`), the Settings page,
+the analytics time-series charts, and designer workload (no designers table yet).
+They follow the same wiring pattern when ready.

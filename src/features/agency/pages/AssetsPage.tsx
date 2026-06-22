@@ -7,10 +7,25 @@ import {
   Filter, SlidersHorizontal, Plus, ChevronDown, ArrowRight
 } from 'lucide-react';
 import {
-  assets, clients, statusConfig, priorityConfig,
-  getClient, getCampaign, type AssetStatus, type Priority
+  assets as mockAssets, clients as mockClients, campaigns as mockCampaigns,
+  statusConfig, priorityConfig,
+  getClient,
+  type AssetStatus, type Priority,
+  type Asset, type Client, type Campaign,
 } from '../data/mockData';
 import { cn } from '../lib/utils';
+
+interface AssetsPageProps {
+  assets?: Asset[];
+  clients?: Client[];
+  campaigns?: Campaign[];
+}
+
+type ViewData = {
+  assets: Asset[];
+  getClient: (id: string) => Client | undefined;
+  getCampaign: (id: string) => Campaign | undefined;
+};
 
 const kanbanColumns: AssetStatus[] = [
   'brief_received', 'generating', 'internal_review',
@@ -21,7 +36,7 @@ type ViewMode = 'kanban' | 'list' | 'table';
 
 function AssetCard({ assetId }: { assetId: string }) {
   const navigate = useNavigate();
-  const asset = assets.find(a => a.id === assetId)!;
+  const asset = mockAssets.find(a => a.id === assetId)!;
   const client = getClient(asset.clientId);
   const { color: priorityColor } = priorityConfig[asset.priority];
   const cfg = statusConfig[asset.status];
@@ -55,8 +70,9 @@ function AssetCard({ assetId }: { assetId: string }) {
   );
 }
 
-function KanbanView({ filtered }: { filtered: string[] }) {
+function KanbanView({ filtered, data }: { filtered: string[]; data: ViewData }) {
   const navigate = useNavigate();
+  const { assets, getClient } = data;
   return (
     <div className="overflow-x-auto pb-4 -mx-6 px-6 flex-1">
       <div className="flex gap-4 min-w-max h-full">
@@ -111,8 +127,9 @@ function KanbanView({ filtered }: { filtered: string[] }) {
   );
 }
 
-function ListView({ filtered }: { filtered: string[] }) {
+function ListView({ filtered, data }: { filtered: string[]; data: ViewData }) {
   const navigate = useNavigate();
+  const { assets, getClient, getCampaign } = data;
   const filteredAssets = assets.filter(a => filtered.includes(a.id));
   return (
     <div className="space-y-2">
@@ -150,8 +167,9 @@ function ListView({ filtered }: { filtered: string[] }) {
   );
 }
 
-function TableView({ filtered }: { filtered: string[] }) {
+function TableView({ filtered, data }: { filtered: string[]; data: ViewData }) {
   const navigate = useNavigate();
+  const { assets, getClient } = data;
   const filteredAssets = assets.filter(a => filtered.includes(a.id));
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -213,7 +231,14 @@ function TableView({ filtered }: { filtered: string[] }) {
   );
 }
 
-export default function AssetsPage() {
+export default function AssetsPage(props: AssetsPageProps = {}) {
+  const assets = props.assets?.length ? props.assets : mockAssets;
+  const clients = props.clients?.length ? props.clients : mockClients;
+  const campaigns = props.campaigns?.length ? props.campaigns : mockCampaigns;
+  const getClient = (id: string) => clients.find((c) => c.id === id);
+  const getCampaign = (id: string) => campaigns.find((c) => c.id === id);
+  const data: ViewData = { assets, getClient, getCampaign };
+
   const [view, setView] = useState<ViewMode>('kanban');
   const [search, setSearch] = useState('');
   const [clientFilter, setClientFilter] = useState('all');
@@ -300,9 +325,9 @@ export default function AssetsPage() {
 
       {/* View */}
       <div className={cn('flex-1', view === 'kanban' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto')}>
-        {view === 'kanban' && <KanbanView filtered={filtered} />}
-        {view === 'list' && <ListView filtered={filtered} />}
-        {view === 'table' && <TableView filtered={filtered} />}
+        {view === 'kanban' && <KanbanView filtered={filtered} data={data} />}
+        {view === 'list' && <ListView filtered={filtered} data={data} />}
+        {view === 'table' && <TableView filtered={filtered} data={data} />}
       </div>
     </div>
   );

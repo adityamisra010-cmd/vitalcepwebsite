@@ -6,8 +6,12 @@ import {
   Upload, MessageSquare, CheckCircle2, Package,
   FileText, History, Clock, Filter, type LucideIcon
 } from 'lucide-react';
-import { activityItems } from '../data/mockData';
+import { activityItems, type ActivityItem } from '../data/mockData';
 import { cn } from '../lib/utils';
+
+interface ActivityPageProps {
+  activityItems?: ActivityItem[];
+}
 
 const typeConfig: Record<string, { icon: LucideIcon; color: string; label: string }> = {
   version_upload: { icon: Upload, color: '#3b82f6', label: 'Upload' },
@@ -34,12 +38,14 @@ const extendedActivity = [
 const allTypes = ['All', 'Upload', 'Feedback', 'Review', 'Approval', 'Revision', 'Brief', 'Publish'];
 const allUsers = ['All Users', 'Maya Chen', 'Alex Kim', 'Priya Sharma', 'Tomás Rivera', 'Elena Vasquez', 'James Park', 'Rohan Mehta', 'David Frost', 'Sasha Bloom'];
 
-export default function ActivityPage() {
+export default function ActivityPage(props: ActivityPageProps = {}) {
   const navigate = useNavigate();
   const [typeFilter, setTypeFilter] = useState('All');
   const [userFilter, setUserFilter] = useState('All Users');
 
-  const filtered = extendedActivity.filter(item => {
+  const feed = props.activityItems?.length ? props.activityItems : extendedActivity;
+
+  const filtered = feed.filter(item => {
     const meta = typeConfig[item.type];
     const matchesType = typeFilter === 'All' || (meta && meta.label === typeFilter);
     const matchesUser = userFilter === 'All Users' || item.user === userFilter;

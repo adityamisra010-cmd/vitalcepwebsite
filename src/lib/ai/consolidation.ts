@@ -8,8 +8,10 @@ export async function consolidateFeedback(input: ConsolidateFeedbackInput) {
     apiKey: requireEnv('OPENAI_API_KEY'),
   });
 
+  const model = getOptionalEnv('OPENAI_MODEL', 'gpt-4o-mini');
+
   const response = await openai.chat.completions.create({
-    model: getOptionalEnv('OPENAI_MODEL', 'gpt-4o-mini'),
+    model,
     temperature: 0.2,
     response_format: { type: 'json_object' },
     messages: [
@@ -27,5 +29,5 @@ export async function consolidateFeedback(input: ConsolidateFeedbackInput) {
 
   const content = response.choices[0]?.message.content ?? '{}';
 
-  return JSON.parse(content) as unknown;
+  return { model, output: JSON.parse(content) as unknown };
 }

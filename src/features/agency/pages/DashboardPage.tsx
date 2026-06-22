@@ -1,5 +1,6 @@
 'use client';
 
+import { createContext, useContext } from 'react';
 import { useNavigate } from '../lib/navigation';
 import {
   TrendingUp, Clock, AlertTriangle, CheckCircle2,
@@ -7,11 +8,38 @@ import {
 } from 'lucide-react';
 import { useRole } from '../context/RoleContext';
 import {
-  assets, clients, designers, activityItems,
-  statusConfig, priorityConfig, getClient, getCampaign,
-  type Asset
+  assets as mockAssets, clients as mockClients, designers,
+  activityItems as mockActivityItems,
+  statusConfig, priorityConfig,
+  type Asset, type Client, type ActivityItem,
 } from '../data/mockData';
 import { cn } from '../lib/utils';
+
+interface DashboardPageProps {
+  assets?: Asset[];
+  clients?: Client[];
+  activityItems?: ActivityItem[];
+}
+
+type DashboardData = {
+  assets: Asset[];
+  clients: Client[];
+  activityItems: ActivityItem[];
+  getClient: (id: string) => Client | undefined;
+};
+
+const DashboardContext = createContext<DashboardData | null>(null);
+
+function useDashboardData(): DashboardData {
+  return (
+    useContext(DashboardContext) ?? {
+      assets: mockAssets,
+      clients: mockClients,
+      activityItems: mockActivityItems,
+      getClient: (id) => mockClients.find((c) => c.id === id),
+    }
+  );
+}
 
 const kanbanColumns = [
   'brief_received', 'generating', 'internal_review',
@@ -30,6 +58,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 
 function AssetKanbanCard({ asset }: { asset: Asset }) {
   const navigate = useNavigate();
+  const { getClient } = useDashboardData();
   const client = getClient(asset.clientId);
   const { color: priorityColor, label: priorityLabel } = priorityConfig[asset.priority];
   return (
@@ -60,6 +89,7 @@ function AssetKanbanCard({ asset }: { asset: Asset }) {
 
 function FounderDashboard() {
   const navigate = useNavigate();
+  const { assets, clients, activityItems, getClient } = useDashboardData();
   const awaitingReview = assets.filter(a => a.status === 'internal_review').length;
   const awaitingClient = assets.filter(a => a.status === 'client_review').length;
   const overdue = assets.filter(a => new Date(a.dueDate) < new Date() && a.status !== 'approved' && a.status !== 'published').length;
@@ -200,6 +230,7 @@ function FounderDashboard() {
 
 function DesignerDashboard() {
   const navigate = useNavigate();
+  const { assets, getClient } = useDashboardData();
 
   return (
     <div className="p-6 space-y-5">
@@ -286,6 +317,7 @@ function DesignerDashboard() {
 
 function ClientDashboard() {
   const navigate = useNavigate();
+  const { assets } = useDashboardData();
   const clientAssets = assets.filter(a => a.clientId === 'c1');
   const pending = clientAssets.filter(a => a.status === 'client_review');
   const approved = clientAssets.filter(a => a.status === 'approved' || a.status === 'published');
@@ -348,9 +380,25 @@ function ClientDashboard() {
   );
 }
 
-export default function DashboardPage() {
+export default function DashboardPage(props: DashboardPageProps = {}) {
   const { role } = useRole();
-  if (role === 'founder') return <FounderDashboard />;
-  if (role === 'designer') return <DesignerDashboard />;
-  return <ClientDashboard />;
+
+  const clients = props.clients?.length ? props.clients : mockClients;
+  const value: DashboardData = {
+    assets: props.assets?.length ? props.assets : mockAssets,
+    clients,
+    activityItems: props.activityItems?.length ? props.activityItems : mockActivityItems,
+    getClient: (id) => clients.find((c) => c.id === id),
+  };
+
+  const inner =
+    role === 'founder' ? (
+      <FounderDashboard />
+    ) : role === 'designer' ? (
+      <DesignerDashboard />
+    ) : (
+      <ClientDashboard />
+    );
+
+  return <DashboardContext.Provider value={value}>{inner}</DashboardContext.Provider>;
 }

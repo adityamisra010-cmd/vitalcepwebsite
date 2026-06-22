@@ -3,10 +3,24 @@
 import { useState } from 'react';
 import { useNavigate } from '../lib/navigation';
 import { Search, Calendar, ArrowRight } from 'lucide-react';
-import { campaigns, clients, assets, getClient } from '../data/mockData';
+import {
+  campaigns as mockCampaigns,
+  clients as mockClients,
+  type Campaign,
+  type Client,
+} from '../data/mockData';
 import { cn } from '../lib/utils';
 
-export default function CampaignsPage() {
+interface CampaignsPageProps {
+  campaigns?: Campaign[];
+  clients?: Client[];
+}
+
+export default function CampaignsPage(props: CampaignsPageProps = {}) {
+  const campaigns = props.campaigns?.length ? props.campaigns : mockCampaigns;
+  const clients = props.clients?.length ? props.clients : mockClients;
+  const getClient = (id: string) => clients.find((c) => c.id === id);
+
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'paused'>('all');

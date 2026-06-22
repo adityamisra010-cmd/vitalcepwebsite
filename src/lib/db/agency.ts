@@ -1,11 +1,16 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type {
+  ActivityEventRow,
+  AiConsolidationRow,
+  AiPromptGenerationRow,
   AssetRow,
   BrandKitRow,
   CampaignRow,
   ClientRow,
+  ProfileRow,
 } from '@/types/database';
 import type {
+  ActivityItem,
   Asset,
   Campaign,
   Client,
@@ -318,4 +323,104 @@ export async function getBrandKitsPageData(): Promise<{
     clients: clientRows.map((c) => toClientView(c, [], [])),
     brandKits,
   };
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Activity feed
+ * ──────────────────────────────────────────────────────────────────────── */
+
+export function toActivityView(
+  row: ActivityEventRow,
+  profiles: Map<string, ProfileRow>,
+  assets: Map<string, AssetRow>,
+): ActivityItem {
+  const meta = (row.metadata ?? {}) as Record<string, unknown>;
+  const actor = row.actor_id ? profiles.get(row.actor_id) : undefined;
+  const assetId =
+    row.entity_type === 'asset'
+      ? row.entity_id
+      : (meta.assetId as string | undefined);
+  const asset = assetId ? assets.get(assetId) : undefined;
+
+  return {
+    id: row.id,
+    type: row.event_type,
+    description: (meta.description as string) ?? row.event_type.replace(/_/g, ' '),
+    user: actor?.full_name ?? (meta.actor as string) ?? 'System',
+    timestamp: row.created_at,
+    assetId,
+    assetName: (meta.assetName as string) ?? asset?.name,
+  };
+}
+
+export async function getActivityPageData(): Promise<{ activityItems: ActivityItem[] }> {
+  const supabase = await createSupabaseServerClient();
+
+  const [eventsRes, profilesRes, assetsRes] = await Promise.all([
+    supabase
+      .from('activity_events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200),
+    supabase.from('profiles').select('*'),
+    supabase.from('assets').select('*'),
+  ]);
+
+  if (eventsRes.error) throw eventsRes.error;
+  if (profilesRes.error) throw profilesRes.error;
+  if (assetsRes.error) throw assetsRes.error;
+
+  const profiles = new Map(
+    ((profilesRes.data ?? []) as ProfileRow[]).map((p) => [p.id, p]),
+  );
+  const assets = new Map(
+    ((assetsRes.data ?? []) as AssetRow[]).map((a) => [a.id, a]),
+  );
+
+  return {
+    activityItems: ((eventsRes.data ?? []) as ActivityEventRow[]).map((e) =>
+      toActivityView(e, profiles, assets),
+    ),
+  };
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * AI output persistence
+ * ──────────────────────────────────────────────────────────────────────── */
+
+export async function saveConsolidation(input: {
+  review_cycle_id: string;
+  model: string;
+  input: unknown;
+  output: unknown;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('ai_consolidations')
+    .insert(input)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  return data as AiConsolidationRow;
+}
+
+export async function savePromptGeneration(input: {
+  asset_version_id?: string | null;
+  consolidation_id?: string | null;
+  model: string;
+  prompt: string;
+  metadata?: Record<string, unknown>;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('ai_prompt_generations')
+    .insert(input)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  return data as AiPromptGenerationRow;
 }

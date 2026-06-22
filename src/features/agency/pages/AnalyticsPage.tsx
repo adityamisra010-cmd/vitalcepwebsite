@@ -8,8 +8,16 @@ import {
 } from 'recharts';
 import {
   approvalRateData, revisionCountData, reviewTimeData,
-  feedbackTypeData, clients, designers
+  feedbackTypeData, clients as mockClients, designers,
+  type Client,
 } from '../data/mockData';
+
+interface AnalyticsPageProps {
+  // Real client data drives the per-client breakdown. The time-series charts
+  // (approval rate, revisions, review time, feedback mix) and designer
+  // workload remain mock until an analytics aggregation layer is built.
+  clients?: Client[];
+}
 
 const PURPLE = 'oklch(0.63 0.25 282)';
 const BLUE = '#3b82f6';
@@ -36,7 +44,8 @@ const tooltipStyle = {
   fontSize: '12px',
 };
 
-export default function AnalyticsPage() {
+export default function AnalyticsPage(props: AnalyticsPageProps = {}) {
+  const clients = props.clients?.length ? props.clients : mockClients;
   return (
     <div className="p-6 space-y-6">
       {/* Header */}

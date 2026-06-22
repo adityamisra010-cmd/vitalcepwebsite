@@ -8,8 +8,10 @@ export async function generateCreativePrompt(input: GeneratePromptInput) {
     apiKey: requireEnv('OPENAI_API_KEY'),
   });
 
+  const model = getOptionalEnv('OPENAI_MODEL', 'gpt-4o-mini');
+
   const response = await openai.chat.completions.create({
-    model: getOptionalEnv('OPENAI_MODEL', 'gpt-4o-mini'),
+    model,
     temperature: 0.4,
     messages: [
       {
@@ -25,6 +27,7 @@ export async function generateCreativePrompt(input: GeneratePromptInput) {
   });
 
   return {
+    model,
     prompt: response.choices[0]?.message.content ?? '',
   };
 }

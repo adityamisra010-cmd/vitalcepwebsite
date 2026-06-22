@@ -3,17 +3,32 @@
 import { useState } from 'react';
 import { useNavigate } from '../lib/navigation';
 import { CheckCircle2, X, AlertCircle, Eye, Filter, type LucideIcon } from 'lucide-react';
-import { assets, getClient, getCampaign, statusConfig, type Asset } from '../data/mockData';
+import {
+  assets as mockAssets,
+  clients as mockClients,
+  campaigns as mockCampaigns,
+  statusConfig,
+  type Asset,
+  type Client,
+  type Campaign,
+} from '../data/mockData';
 import { cn } from '../lib/utils';
 
 type Action = 'approved' | 'minor_edits' | 'changes_required';
 
-interface ApprovalDecision {
-  assetId: string;
-  action: Action;
+interface ApprovalsPageProps {
+  assets?: Asset[];
+  clients?: Client[];
+  campaigns?: Campaign[];
 }
 
-export default function ApprovalsPage() {
+export default function ApprovalsPage(props: ApprovalsPageProps = {}) {
+  const assets = props.assets?.length ? props.assets : mockAssets;
+  const clients = props.clients?.length ? props.clients : mockClients;
+  const campaigns = props.campaigns?.length ? props.campaigns : mockCampaigns;
+  const getClient = (id: string) => clients.find((c) => c.id === id);
+  const getCampaign = (id: string) => campaigns.find((c) => c.id === id);
+
   const navigate = useNavigate();
   const [decisions, setDecisions] = useState<Record<string, Action>>({});
   const [filter, setFilter] = useState<'all' | 'internal' | 'client'>('all');
