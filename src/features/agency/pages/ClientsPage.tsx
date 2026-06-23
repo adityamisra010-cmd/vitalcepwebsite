@@ -12,6 +12,7 @@ import {
   type Campaign,
 } from '../data/mockData';
 import { cn } from '../lib/utils';
+import { NewClientButton } from '../components/NewClientButton';
 
 interface ClientsPageProps {
   clients?: Client[];
@@ -42,7 +43,10 @@ export default function ClientsPage(props: ClientsPageProps = {}) {
       {/* Client List */}
       <div className={cn('flex flex-col border-r border-border transition-all', selectedClient ? 'w-72 flex-shrink-0' : 'flex-1')}>
         <div className="p-5 border-b border-border">
-          <h1 className="text-xl font-bold mb-4" style={{ fontFamily: 'var(--font-display)' }}>Clients</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Clients</h1>
+            <NewClientButton />
+          </div>
           <div className="flex items-center gap-2 bg-secondary rounded-lg px-3 py-2 border border-border/50">
             <Search size={14} className="text-muted-foreground" />
             <input

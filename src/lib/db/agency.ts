@@ -134,6 +134,95 @@ export async function createAsset(
   return data as AssetRow;
 }
 
+export async function createAssetVersion(input: {
+  asset_id: string;
+  version_number: number;
+  storage_path?: string | null;
+  preview_url?: string | null;
+  notes?: string | null;
+  status?: string;
+  created_by?: string | null;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('asset_versions')
+    .insert(input)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  // Keep the asset's current_version pointer in sync.
+  await supabase
+    .from('assets')
+    .update({ current_version: input.version_number, updated_at: new Date().toISOString() })
+    .eq('id', input.asset_id);
+
+  return data;
+}
+
+export async function createFeedbackItem(input: {
+  review_cycle_id: string;
+  asset_version_id: string;
+  author_id?: string | null;
+  issue_type: string;
+  priority: string;
+  category?: string | null;
+  description: string;
+  suggested_fix?: string | null;
+  pin_x?: number | null;
+  pin_y?: number | null;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('feedback_items')
+    .insert(input)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
+export async function createApproval(input: {
+  asset_version_id: string;
+  reviewer_id?: string | null;
+  decision: string;
+  notes?: string | null;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('approvals')
+    .insert(input)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
+/** Append a row to activity_events. Best-effort; callers may ignore failures. */
+export async function logActivity(input: {
+  actor_id?: string | null;
+  entity_type: string;
+  entity_id: string;
+  event_type: string;
+  metadata?: Record<string, unknown>;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from('activity_events').insert({
+    actor_id: input.actor_id ?? null,
+    entity_type: input.entity_type,
+    entity_id: input.entity_id,
+    event_type: input.event_type,
+    metadata: input.metadata ?? {},
+  });
+
+  if (error) throw error;
+}
+
 /* ────────────────────────────────────────────────────────────────────────
  * Brand kits
  * ──────────────────────────────────────────────────────────────────────── */

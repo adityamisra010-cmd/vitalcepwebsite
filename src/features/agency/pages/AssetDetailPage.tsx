@@ -10,7 +10,8 @@ import {
 import {
   getAsset, getClient, getCampaign, getDesigner,
   getAssetFeedback, getAssetVersions, activityItems,
-  statusConfig, priorityConfig, feedbackPriorityConfig, issueTypeConfig
+  statusConfig, priorityConfig, feedbackPriorityConfig, issueTypeConfig,
+  type Asset,
 } from '../data/mockData';
 import { cn } from '../lib/utils';
 
@@ -426,12 +427,12 @@ function ActivityTab({ assetId }: { assetId: string }) {
   );
 }
 
-export default function AssetDetailPage() {
+export default function AssetDetailPage({ asset: assetProp }: { asset?: Asset } = {}) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  const asset = getAsset(id || '');
+  const asset = assetProp ?? getAsset(id || '');
   if (!asset) {
     return (
       <div className="p-6 flex items-center justify-center h-64">

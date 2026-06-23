@@ -1,10 +1,19 @@
-import { AppShell } from '@/features/agency/AppShell';
+import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
-export default function AgencyLayout({
+import { AppShell } from '@/features/agency/AppShell';
+import { getCurrentProfile, toUiRole } from '@/lib/auth';
+
+export default async function AgencyLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
-  return <AppShell>{children}</AppShell>;
+  const profile = await getCurrentProfile();
+
+  if (!profile) {
+    redirect('/login');
+  }
+
+  return <AppShell initialRole={toUiRole(profile.role)}>{children}</AppShell>;
 }

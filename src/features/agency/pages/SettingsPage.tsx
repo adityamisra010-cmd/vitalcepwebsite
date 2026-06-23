@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { Check, Bell, Shield, Users, Palette, Zap, Globe, Mail, type LucideIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { SignOutButton } from '../components/SignOutButton';
 
 type Section = 'general' | 'notifications' | 'team' | 'integrations' | 'security';
 
@@ -90,6 +91,9 @@ export default function SettingsPage() {
       {/* Sidebar nav */}
       <div className="w-48 flex-shrink-0">
         <h1 className="text-xl font-bold mb-4" style={{ fontFamily: 'var(--font-display)' }}>Settings</h1>
+        <div className="mb-4">
+          <SignOutButton />
+        </div>
         <nav className="space-y-0.5">
           {sections.map(s => (
             <button

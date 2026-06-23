@@ -2,12 +2,18 @@
 
 import type { ReactNode } from 'react';
 
-import { RoleProvider } from './context/RoleContext';
+import { RoleProvider, type Role } from './context/RoleContext';
 import AppLayout from './layouts/AppLayout';
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  initialRole = 'founder',
+}: {
+  children: ReactNode;
+  initialRole?: Role;
+}) {
   return (
-    <RoleProvider>
+    <RoleProvider initialRole={initialRole}>
       <AppLayout>{children}</AppLayout>
     </RoleProvider>
   );
