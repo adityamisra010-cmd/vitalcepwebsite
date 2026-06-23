@@ -10,6 +10,7 @@ import {
   type Client,
 } from '../data/mockData';
 import { cn } from '../lib/utils';
+import { NewCampaignButton } from '../components/NewCampaignButton';
 
 interface CampaignsPageProps {
   campaigns?: Campaign[];
@@ -45,6 +46,7 @@ export default function CampaignsPage(props: CampaignsPageProps = {}) {
           <h1 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Campaigns</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{campaigns.length} total · {campaigns.filter(c => c.status === 'active').length} active</p>
         </div>
+        <NewCampaignButton clients={clients} />
       </div>
 
       {/* Filters */}

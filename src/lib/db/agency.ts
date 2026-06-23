@@ -53,6 +53,19 @@ export async function listAssets() {
   return data ?? [];
 }
 
+export async function getAssetById(assetId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('assets')
+    .select('*')
+    .eq('id', assetId)
+    .single();
+
+  if (error) throw error;
+
+  return data as AssetRow;
+}
+
 export async function getAssetWithReviewContext(assetId: string) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -383,6 +396,53 @@ export async function getClientsPageData(): Promise<{
     clients: clientRows.map((c) => toClientView(c, campaignRows, assetRows)),
     campaigns: campaignRows.map((c) => toCampaignView(c, assetRows)),
     assets: assetRows.map(toAssetView),
+  };
+}
+
+export async function getApprovalsPageData(): Promise<{
+  clients: Client[];
+  campaigns: Campaign[];
+  assets: Asset[];
+  latestVersionByAsset: Record<string, string>;
+}> {
+  const supabase = await createSupabaseServerClient();
+
+  const [clientsRes, campaignsRes, assetsRes, versionsRes] = await Promise.all([
+    supabase.from('clients').select('*').order('name'),
+    supabase.from('campaigns').select('*'),
+    supabase.from('assets').select('*'),
+    supabase
+      .from('asset_versions')
+      .select('id, asset_id, version_number')
+      .order('version_number', { ascending: false }),
+  ]);
+
+  if (clientsRes.error) throw clientsRes.error;
+  if (campaignsRes.error) throw campaignsRes.error;
+  if (assetsRes.error) throw assetsRes.error;
+  if (versionsRes.error) throw versionsRes.error;
+
+  const clientRows = (clientsRes.data ?? []) as ClientRow[];
+  const campaignRows = (campaignsRes.data ?? []) as CampaignRow[];
+  const assetRows = (assetsRes.data ?? []) as AssetRow[];
+
+  // Versions are ordered newest-first, so the first one seen per asset is latest.
+  const latestVersionByAsset: Record<string, string> = {};
+  for (const v of (versionsRes.data ?? []) as {
+    id: string;
+    asset_id: string;
+    version_number: number;
+  }[]) {
+    if (!latestVersionByAsset[v.asset_id]) {
+      latestVersionByAsset[v.asset_id] = v.id;
+    }
+  }
+
+  return {
+    clients: clientRows.map((c) => toClientView(c, campaignRows, assetRows)),
+    campaigns: campaignRows.map((c) => toCampaignView(c, assetRows)),
+    assets: assetRows.map(toAssetView),
+    latestVersionByAsset,
   };
 }
 

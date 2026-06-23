@@ -14,6 +14,7 @@ import {
   type Asset,
 } from '../data/mockData';
 import { cn } from '../lib/utils';
+import { VersionUploader } from '../components/VersionUploader';
 
 type Tab = 'overview' | 'brief' | 'versions' | 'review_cycles' | 'feedback' | 'approvals' | 'activity';
 
@@ -465,6 +466,7 @@ export default function AssetDetailPage({ asset: assetProp }: { asset?: Asset } 
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">V{asset.currentVersion} · {asset.revisionCount} revisions</p>
         </div>
+        <VersionUploader assetId={asset.id} />
         <button className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">
           <MoreHorizontal size={16} />
         </button>

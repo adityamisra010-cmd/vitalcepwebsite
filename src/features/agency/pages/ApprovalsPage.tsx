@@ -13,6 +13,7 @@ import {
   type Campaign,
 } from '../data/mockData';
 import { cn } from '../lib/utils';
+import { decideApprovalAction } from '@/app/(agency)/actions';
 
 type Action = 'approved' | 'minor_edits' | 'changes_required';
 
@@ -20,12 +21,14 @@ interface ApprovalsPageProps {
   assets?: Asset[];
   clients?: Client[];
   campaigns?: Campaign[];
+  latestVersionByAsset?: Record<string, string>;
 }
 
 export default function ApprovalsPage(props: ApprovalsPageProps = {}) {
   const assets = props.assets?.length ? props.assets : mockAssets;
   const clients = props.clients?.length ? props.clients : mockClients;
   const campaigns = props.campaigns?.length ? props.campaigns : mockCampaigns;
+  const latestVersionByAsset = props.latestVersionByAsset ?? {};
   const getClient = (id: string) => clients.find((c) => c.id === id);
   const getCampaign = (id: string) => campaigns.find((c) => c.id === id);
 
@@ -41,6 +44,16 @@ export default function ApprovalsPage(props: ApprovalsPageProps = {}) {
 
   const handleDecision = (assetId: string, action: Action) => {
     setDecisions(prev => ({ ...prev, [assetId]: action }));
+
+    // Persist when we have a real asset version to attach the decision to.
+    const versionId = latestVersionByAsset[assetId];
+    if (versionId) {
+      const form = new FormData();
+      form.set('asset_version_id', versionId);
+      form.set('asset_id', assetId);
+      form.set('decision', action);
+      void decideApprovalAction(form);
+    }
   };
 
   const actionConfig: Record<Action, { label: string; color: string; bg: string; icon: LucideIcon }> = {

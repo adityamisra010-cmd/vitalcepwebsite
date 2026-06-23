@@ -6,9 +6,11 @@ import { getCurrentProfile } from '@/lib/auth';
 import {
   createApproval,
   createAsset,
+  createAssetVersion,
   createCampaign,
   createClient,
   createFeedbackItem,
+  getAssetById,
   logActivity,
   upsertBrandKit,
 } from '@/lib/db/agency';
@@ -111,6 +113,47 @@ export async function createAssetAction(formData: FormData): Promise<ActionResul
 
     revalidatePath('/assets');
     return { ok: true, id: asset.id };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Failed' };
+  }
+}
+
+export async function addVersionAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const profile = await requireProfile();
+    const assetId = String(formData.get('asset_id') ?? '');
+    const storagePath = String(formData.get('storage_path') ?? '');
+    const fileName = String(formData.get('file_name') ?? '');
+    if (!assetId || !storagePath)
+      return { ok: false, error: 'Asset and uploaded file are required' };
+
+    const asset = await getAssetById(assetId);
+    const nextVersion = (asset.current_version ?? 0) + 1;
+
+    const version = await createAssetVersion({
+      asset_id: assetId,
+      version_number: nextVersion,
+      storage_path: storagePath,
+      notes: fileName || null,
+      status: 'draft',
+      created_by: profile.id,
+    });
+
+    await logActivity({
+      actor_id: profile.id,
+      entity_type: 'asset',
+      entity_id: assetId,
+      event_type: 'version_upload',
+      metadata: {
+        description: `uploaded V${nextVersion}`,
+        actor: profile.full_name,
+        assetId,
+        assetName: asset.name,
+      },
+    }).catch(() => {});
+
+    revalidatePath(`/assets/${assetId}`);
+    return { ok: true, id: version.id };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Failed' };
   }

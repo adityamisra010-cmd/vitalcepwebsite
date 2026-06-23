@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { useNavigate } from '../lib/navigation';
 import {
   Search, Kanban, List, Table2, Calendar,
-  Filter, SlidersHorizontal, Plus, ChevronDown, ArrowRight
+  Filter, SlidersHorizontal, ChevronDown, ArrowRight
 } from 'lucide-react';
+import { NewAssetButton } from '../components/NewAssetButton';
 import {
   assets as mockAssets, clients as mockClients, campaigns as mockCampaigns,
   statusConfig, priorityConfig,
@@ -265,10 +266,7 @@ export default function AssetsPage(props: AssetsPageProps = {}) {
           <h1 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>Assets</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{filtered.length} of {assets.length} assets</p>
         </div>
-        <button className="flex items-center gap-1.5 bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
-          <Plus size={15} />
-          New Asset
-        </button>
+        <NewAssetButton clients={clients} campaigns={campaigns} />
       </div>
 
       {/* Toolbar */}
